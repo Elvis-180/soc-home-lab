@@ -58,23 +58,23 @@ Assigned pfsense 3 interface (WAN, LAN and OPT1)
          
 ---
 
-## 🔧 Tools & Roles
+##  Tools & Roles
 
-### 🔴 Attack Machine
+###  Attack Machine
 | Tool | Type | Role |
 |------|------|------|
 | **Kali Linux** | Attacker OS | Simulates real-world attacks — port scanning, brute force, exploitation |
 
 ---
 
-### 🔥 Network Security
+###  Network Security
 | Tool | Type | Role |
 |------|------|------|
 | **pfSense** | Firewall / Router | Controls traffic, blocks/allows connections, logs network activity |
 
 ---
 
-### 🖥️ Endpoints (Target Machines)
+###  Endpoints (Target Machines)
 | Tool | Type | Role |
 |------|------|------|
 | **Windows Server (Domain Controller)** | Endpoint | Active Directory domain controller, primary attack target |
@@ -84,7 +84,7 @@ Assigned pfsense 3 interface (WAN, LAN and OPT1)
 
 ---
 
-### 🌐 Network Detection
+###  Network Detection
 | Tool | Type | Role |
 |------|------|------|
 | **Ubuntu Server** | Host OS | Hosts Snort IDS |
@@ -92,7 +92,7 @@ Assigned pfsense 3 interface (WAN, LAN and OPT1)
 
 ---
 
-### 📊 SIEM
+###  SIEM
 | Tool | Type | Role |
 |------|------|------|
 | **Splunk Enterprise** | SIEM | Collects, indexes, correlates and visualizes all logs from every source in the lab |
