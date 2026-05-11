@@ -9,11 +9,12 @@ The environment focuses on observing how traffic flows across different network 
 
 ## Objectives
 - Design a segmented SOC-style network
-- Monitor network traffic and detect intrusions using IDS and firewall logging
-- Centrlize and correlate security logs using a SIEM platefrom
-- Simulate real-world attacks from an external adversary
 - Map detected behaviour to MITRE ATT&CK techniques for threat context
-- Understand visibility differences across network layers
+- Simulate real-world cyber attacks from Kali Linux
+- Monitor traffic and Detect attacks using Snort IDS and Sysmon endpoint monitoring
+- Forward all logs to Splunk for centralized analysis
+- Build correlation rules and dashboards in Splunk
+- Practice incident response and threat hunting
 
   ---
 
@@ -23,53 +24,78 @@ The environment focuses on observing how traffic flows across different network 
 Assigned pfsense 3 interface (WAN, LAN and OPT1)
 - External OPT1 Network: [Kali Linux]
 - Internal LAN Network: [Windows Server, Windows 10]
-- Management / Monitoring Network: [Splunk (SIEM), Snort (IDS), Pfsense Logs]
+- Management / Monitoring Network: [Splunk (SIEM), Snort (IDS), Sysmon, Pfsense Logs]
 
 ---
 
 ## Architecture Diagram
-                [ Kali Linux (OPT1) ]
-                       |
-                       | (Attacks: scan, brute force, exploit)
-                       v
-        -----------------------------------
-        |            pfSense              |
-        | Firewall + Traffic Logging     |
-        -----------------------------------
-            |                      |
-            |                      |
-     Internal LAN           Logging Forward
-            |                      |
-    ------------------             |
-    |                |             |
-    [Windows Server ]   [Windows 10]      |
-        \            /            |
-         \          /             |
-          [Ubuntu + Snort IDS] ---|
-                 |
-                 v
-        ---------------------
-        | Splunk Enterprise |
-        | SIEM / Correlation |
-        ---------------------
+              [ Kali Linux ]
+                    |
+                    | (Attacks: scan, brute force, exploit)
+                    v
+      -----------------------------------
+      |            pfSense              |
+      | Firewall + Traffic Logging      |
+      -----------------------------------
+        |                              |
+        |                              |
+    Internal LAN                 Logging Forward
+        |                              |
+    -----------------------------      |
+    |                           |      |      
+    [Windows Server DC]   [Windows 10] |
+    [+ Sysmon]            [  + UF   ]  |      
+    [+ UF]                      |      |
+    \                          |       |
+     \                        |        |
+    [Ubuntu Server + Snort IDS] -------|
+              |
+              v
+    ---------------------
+    | Splunk Enterprise  |
+    | SIEM / Correlation |
+    ---------------------                           
+         
+---
 
-### Components
+## 🔧 Tools & Roles
 
-#### Firewall / Gateway
-- Tool: pfSense
-- Role: Network routing, segmentation, and traffic control
+### 🔴 Attack Machine
+| Tool | Type | Role |
+|------|------|------|
+| **Kali Linux** | Attacker OS | Simulates real-world attacks — port scanning, brute force, exploitation |
 
-#### Intrusion Detection System (IDS)
-- Tool: Snort (Ubuntu Server)
-- Role: Packet inspection and alert generation for suspicious traffic
+---
 
-#### SIEM Platform
-- Tool: Splunk
-- Role: Log ingestion, correlation, and event analysis
+### 🔥 Network Security
+| Tool | Type | Role |
+|------|------|------|
+| **pfSense** | Firewall / Router | Controls traffic, blocks/allows connections, logs network activity |
 
-#### End Systems
-- Windows Server (Domain Controller
-- Windows 10 (Domain Computer)
+---
+
+### 🖥️ Endpoints (Target Machines)
+| Tool | Type | Role |
+|------|------|------|
+| **Windows Server (Domain Controller)** | Endpoint | Active Directory domain controller, primary attack target |
+| **Windows 10** | Endpoint | Domain Computer, simulates a real user machine |
+| **Sysmon** | Endpoint Monitor | Logs process creation, network connections, file & registry changes on Windows machines |
+| **Splunk Universal Forwarder** | Log Shipper | Ships Sysmon & Windows Event logs to Splunk |
+
+---
+
+### 🌐 Network Detection
+| Tool | Type | Role |
+|------|------|------|
+| **Ubuntu Server** | Host OS | Hosts Snort IDS |
+| **Snort** | Network IDS | Monitors network traffic, detects suspicious patterns and known attack signatures |
+
+---
+
+### 📊 SIEM
+| Tool | Type | Role |
+|------|------|------|
+| **Splunk Enterprise** | SIEM | Collects, indexes, correlates and visualizes all logs from every source in the lab |
 
 ---
 
