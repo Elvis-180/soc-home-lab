@@ -1,4 +1,4 @@
-# Network Security Monitoring Lab Architecture
+# SOC Home Lab For Network Threat Detection
 
 ## Overview
 This lab simulates a segmented enterprise network designed to demonstrate traffic monitoring, intrusion detection, and centralized log analysis using IDS and SIEM tools.
