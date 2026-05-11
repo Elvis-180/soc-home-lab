@@ -29,32 +29,41 @@ Assigned pfsense 3 interface (WAN, LAN and OPT1)
 ---
 
 ## Architecture Diagram
-              [ Kali Linux ]
-                    |
-                    | (Attacks: scan, brute force, exploit)
-                    v
-      -----------------------------------
-      |            pfSense              |
-      | Firewall + Traffic Logging      |
-      -----------------------------------
-        |                              |
-        |                              |
-    Internal LAN                 Logging Forward
-        |                              |
-    -----------------------------      |
-    |                           |      |      
-    [Windows Server DC]   [Windows 10] |
-    [+ Sysmon]            [  + UF   ]  |      
-    [+ UF]                      |      |
-    \                          |       |
-     \                        |        |
-    [Ubuntu Server + Snort IDS] -------|
-              |
-              v
-    ---------------------
-    | Splunk Enterprise  |
-    | SIEM / Correlation |
-    ---------------------                           
+             [ Kali Linux — 192.168.2.5/24 . OPT1 ]
+     Attacker · Nmap · Metasploit . Hydra
+              │
+              │  recon · brute force · exploit
+              ▼
+    ┌─────────────────────────────┐
+    │          pfSense            │   
+    │        Firewall             │
+    └──────────────┬──────────────┘
+               │
+               │  192.168.1.0/24 LAN
+               │
+    ┌──────────────▼──────────────┐
+    │       Ubuntu Server         │   
+    │  Snort IDS · Splunk UF      |
+    │        192.168.1.9          |
+    └──────────────┬──────────────┘
+               │
+       ┌───────┴────────┐
+       │                │
+    ┌──────▼──────┐  ┌──────▼──────┐
+    │ Windows     │  │ Windows 10  │   
+    │ Server 2022 │  │  Domain PC  │
+    │ 192.168.1.1 │  │     UF      │
+    │ AD DC · DNS │◄─┤ 192.168.1.3 │
+    │ Sysmon · UF │  │             │
+    └─────────────┘  └─────────────┘
+               │
+               │  all logs forwarded
+               ▼
+    ┌─────────────────────────────┐
+    │     Splunk Enterprise       │   
+    │  SIEM / Correltion          |
+    │      192.168.1.10:8000      |
+    └─────────────────────────────┘                         
          
 ---
 
@@ -100,11 +109,10 @@ Assigned pfsense 3 interface (WAN, LAN and OPT1)
 ---
 
 ## Traffic Flow Description
-1. Traffic is generated from the Windows system
-2. Traffic passes through pfSense firewall
-3. Snort inspects packets for anomalies or rule matches
-4. Logs are forwarded to Splunk for centralized analysis
-5. Events are correlated and visualized in Splunk dashboards
+- Kali sends malicious traffic into the network. That traffic hits pfSense first, which enforces firewall rules and logs everything passing through.
+- Traffic then enters the LAN where Ubuntu/Snort is listening in promiscuous mode  it inspects all traffic on the segment and generates alerts on anything suspicious.
+- The internal machines, Windows Server and Windows 10, communicate normally  the workstation authenticates against the Domain Controller for login, DNS, and Group Policy.
+- All machines forward their logs to Splunk. pfSense sends firewall logs, Snort sends IDS alerts, and the Windows machines send Sysmon and event logs. Splunk ties it all together so you have full visibility across the entire network from a single place.
 
 ---
 
