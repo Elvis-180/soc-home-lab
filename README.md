@@ -122,6 +122,11 @@ Assigned pfsense 3 interface (WAN, LAN and OPT1)
 - SIEM provides aggregated visibility across sources
 
 ---
+## Screenshot
+- Vitual Machine
+  <img width="1920" height="1080" alt="Screenshot 2026-05-07 125102" src="https://github.com/user-attachments/assets/5cc60bc2-e12e-423f-a53c-fa475e93278e" />
+- Logs ingested into Splunk (SIEM)
+  <img width="1920" height="1080" alt="Screenshot 2026-05-07 131246" src="https://github.com/user-attachments/assets/491e6f96-626d-4f7c-927a-69d621a5b174" />
 
 ## Lesson Learned
 -	Placement matters more than tools: IDS effectiveness depends on correct network positioning; poor placement creates blind spots regardless of configuration quality.
