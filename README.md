@@ -67,6 +67,143 @@ Assigned pfsense 3 interface (WAN, LAN and OPT1)
          
 ---
 
+## Lab Setup
+### Step 1  Install VirtualBox
+1.	Downloaded VirtualBox from https://www.virtualbox.org 
+2.	Run the installer and follow the prompts — accept all defaults.
+3.	Also install the VirtualBox Extension Pack from the same download page (adds USB 3.0, RDP).
+4.  Virtualisation is already enabled (enabled in the BIOS)
+
+## Step 2  Install & Configure pfSense
+pfSense is  firewall. It has three virtual network interfaces:
+•	Interface 1 (em0 / WAN side)
+•	Interface 2 (em1 / LAN side): Connected to the external machine ( Kali Linux)
+. Interface 3 (em3/ OPT1 side): Connected to internal machines (Windows server, windows 10, Ubuntu Server)
+
+### 2a  Create the pfSense VM
+1.	In VirtualBox → New
+2.	Name: pfSense, Type: BSD, Version: FreeBSD (64-bit)
+3.	RAM: 1024 MB, Disk: 30 GB
+4.	Before starting, go to Settings → Network
+-	Adapter 2: Internal Network → Name: attacker-net
+-	Adapter 3: Internal Network → Name: internal-net
+  
+### 2b Install pfSense
+1.	Boot from the pfSense ISO
+2.	Accept defaults through the installer 
+3.	Reboot after install, remove ISO
+   
+### 2c  Configure Interfaces
+After reboot, at the console:
+1.	Select option 1 — Assign Interfaces
+- OPT1 → em3 (attacker-net side)
+-	LAN → em1 (internal-net side)
+2.	Select option 2 — Set Interface IP Addresses
+-	 WAN IP: 10.0.2.15/24
+-	 LAN IP: 192.168.1.2/24 (internal subnet)
+-  OPT1 IP: 192.168.2.1/24 (external subnet)
+
+### 2d Access the pfSense Web UI
+- From any internal machine browser: http://192.168.20.1
+- Default login: admin / pfsense
+- The Password was changed immediately
+
+## Step 3  Install Ubuntu Server + Snort IDS
+### 3a  Create the Ubuntu VM
+1.	VirtualBox → New
+2.	Name: Ubuntu-IDS, Type: Linux, Version: Ubuntu (64-bit)
+3.	RAM: 2048 MB, Disk: 50 GB
+4.	Settings → Network → Adapter 1: Internal Network → internal-net
+   
+### 3b Install Ubuntu Server
+1.	Boot from Ubuntu Server ISO
+2.	Follow installer: set hostname and password
+3.	Set IP (192.168.1.9)
+4.	After install, log in and update: sudo apt update && sudo apt upgrade -y
+
+## Step 4  Install Windows Server & Windows 10
+Windows Server VM
+1.	VirtualBox → New
+2.	Name: WinServer, Type: Microsoft Windows, Version: Windows 2025 (64-bit)
+3.	RAM: 4096 MB, Disk: 50 GB
+4.	Network → Adapter 1: Internal Network → internal-net
+5.	Boot from Windows Server ISO, follow setup wizard
+6.	Set a strong Administrator password
+  
+Windows 10 VM
+1.	Repeat above steps, Version: Windows 10 (64-bit)
+2.	RAM: 2048 MB, Disk: 40 GB
+3.	Network → Adapter 1: Internal Network → internal-net
+
+## Step 5 — Install Sysmon on Windows server
+Sysmon (System Monitor) logs detailed process, network, and file activity.
+On  Windows Server
+1.	Download Sysmon from Microsoft Sysinternals:
+https://learn.microsoft.com/sysinternals/downloads/sysmon
+2.	Download a community Sysmon config (recommended — SwiftOnSecurity):
+https://github.com/SwiftOnSecurity/sysmon-config
+3.	Open PowerShell as Administrator and run:
+   
+**Navigate to your download folder**
+- cd C:\Users\Admin\Downloads
+
+**Install Sysmon with the config file**
+- .\Sysmon64.exe -accepteula -i sysmonconfig-export.xml
+
+**Verify Sysmon is running**
+- Get-Service Sysmon64
+
+**View Sysmon Logs**
+- Open Event Viewer, Application and Services Logs, Microsoft, Windows, Symon, Operational
+
+## Step 6  Install Kali Linux
+
+6a  Create the Kali VM
+1.	VirtualBox → New
+2.	Name: Kali-Attacker, Type: Linux, Version: Debian (64-bit)
+3.	RAM: 2048 MB, Disk: 50 GB
+4.	Network → Adapter 1: Internal Network → attacker-net
+   
+6b  Install Kali
+1.	Boot from Kali ISO
+2.	Select Graphical Install, follow prompts
+3.	Set hostname (tem), password ()
+4.	Set IP (192.168.2.5)
+5.	After install, update:
+- sudo apt update && sudo apt upgrade -y
+
+## Step 7 Test Connectivity 
+- Test connectivity between each machine using command (Ping)
+
+## Step 8 Install and Configure Snort IDS
+1.	Go to https://www.snort.org → create a free account
+2.	After logging in, go to your profile → copy your Oinkcode
+3.	Install Snort on Ubuntu via apt
+
+## Step 10 — Install Splunk Universal Forwarder
+The Universal Forwarder ships logs from Windows/Ubuntu to a Splunk SIEM instance.
+On Windows Server / Windows 10:
+1.	Download from: https://www.splunk.com/en_us/download/universal-forwarder.html
+2.	Run the installer, set:
+•	Receiving Indexer: IP of your Splunk server, port 9997
+3.	After install, configure what to monitor:
+Open C:\Program Files\SplunkUniversalForwarder\etc\system\local\inputs.conf and add:
+- [WinEventLog://Microsoft-Windows-Sysmon/Operational]
+disabled = false
+index = main
+
+**On Ubuntu**
+Download and install 
+- wget -O splunkforwarder.deb "https://download.splunk.com/products/universalforwarder/..."
+- sudo dpkg -i splunkforwarder.deb
+
+**Start and configure**
+- sudo /opt/splunkforwarder/bin/splunk start --accept-license
+- sudo /opt/splunkforwarder/bin/splunk add forward-server 192.168.20.x:9997
+- sudo /opt/splunkforwarder/bin/splunk add monitor /var/log/snort/alert
+
+---
+
 ##  Tools & Roles
 
 ###  Attack Machine
